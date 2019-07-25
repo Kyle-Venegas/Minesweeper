@@ -1,9 +1,6 @@
 import os
 import random
 
-
-'''how to do 2 arrays one for '*' and the actual board'''
-
 class board:
 
     BOARD_SIZE = 8
