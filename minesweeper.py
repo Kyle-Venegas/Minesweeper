@@ -11,11 +11,11 @@ class board:
         self.grid = [["*" for i in range(BOARD_SIZE)] for j in range(BOARD_SIZE)]
 
     def draw(self):
-        columns = "    ".join([str(i) for i in range(BOARD_SIZE)])
-        print("\n     ", columns)
+        columns = " ".join([str(i) for i in range(BOARD_SIZE)])
+        print("\n   ", columns)
         y = 0
         for row in self.grid:
-            print(" ", y, row)
+            print(" ", y, ' '.join(row))
             y += 1
         print("\n", MINES, "mines remaining")
 
@@ -52,12 +52,14 @@ class mines:
             _n += 1
 
     def draw(self):
+        columns = "  ".join([str(i) for i in range(BOARD_SIZE)])
+        print("\n      ", columns)
+        y = 0
         for row in self.grid:
-            print(row)
-        print("\n", MINES, "mines remaining")
+            print('   ', y, row)
+            y += 1
 
     def numbers(self, y, x):
-        n = 0
         if self.grid[y][x] == 0:
             n = self._check_row(y, x)
             n += self._check_col(y, x)
