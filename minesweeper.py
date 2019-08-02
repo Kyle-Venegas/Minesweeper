@@ -6,67 +6,107 @@ MINES = 15
 LAST_INDEX = BOARD_SIZE - 1
 
 class board:
+    mines = MINES
     
     def __init__(self):
         self.grid = [["*" for i in range(BOARD_SIZE)] for j in range(BOARD_SIZE)]
 
     def draw(self):
         columns = " ".join([str(i) for i in range(BOARD_SIZE)])
-        print("\n   ", columns)
+        print("\n     ", columns, "\n")
         y = 0
         for row in self.grid:
-            print(" ", y, ' '.join(row))
+            print(" ", y, ' ', ' '.join(row))
             y += 1
-        print("\n", MINES, "mines remaining")
+        print("\n", self.mines, "mines remaining")
 
-    def reveal(self):
-        x = int(input("\ncolumn: "))
-        y = int(input("row: "))
-#       flag = input("flag?(y/n)")
-        if bomb.grid[y][x] == 0:
-            self.grid[y][x] = str(bomb.numbers(y, x))
-            # for free space
-            if bomb.numbers(y, x) == ' ':
-                self._check_row(y, x)
-                self._check_col(y, x)
-                self._check_slash(y, x)
-                self._check_backslash(y, x)
+    def reveal(self, y, x, flag):
+        mines = MINES
+        if flag == 'y':
+            if self.grid[y][x] == '*':
+                self.grid[y][x] = 'f'
+                self.mines -= 1
+            elif self.grid[y][x] == 'f':
+                self.grid[y][x] = '*'
+                self.mines += 1
+        else:
+            if bomb.grid[y][x] == 0:
+                self.grid[y][x] = str(bomb.numbers(y, x))
+                # for free space
+                if bomb.numbers(y, x) == ' ':
+                    self.free_space(y, x)
+            if bomb.grid[y][x]:
+                for y in range(BOARD_SIZE):
+                    for x in range(BOARD_SIZE):
+                        if bomb.grid[y][x]:
+                            self.grid[y][x] = 'X'
+                return True
 
-        if bomb.grid[y][x]:
-            for y in range(BOARD_SIZE):
-                for x in range(BOARD_SIZE):
-                    if bomb.grid[y][x]:
-                        self.grid[y][x] = 'X'
-            return True
-#       if flag == 'y':
-#           self.grid[y][x] = 'f'
+    def free_space(self, y, x):
+        #if y == 0
+        self._check_row(y, x)
+        self._check_col(y, x)
+        self._check_slash(y, x)
+        self._check_backslash(y, x)
 
     def _check_row(self, y, x):
         n = 0
         if x == 0:
             if bomb.grid[y][x + 1] == 0:
                 self.grid[y][x + 1] = str(bomb.numbers(y, x + 1))
+                # third if statements and try block checks adjacent squares for other free space
+                if self.grid[y][x + 2] == '*' and self.grid[y][x + 1] == ' ':
+                    self.free_space(y, x + 1)
         if x == LAST_INDEX:
             if bomb.grid[y][x - 1] == 0:
                 self.grid[y][x - 1] = str(bomb.numbers(y, x - 1))
+                if self.grid[y][x - 2] == '*' and self.grid[y][x - 1] == ' ':
+                    self.free_space(y, x - 1)
         if 1 <= x and x < LAST_INDEX:
             for i in range(x - 1, x + 2, 2):
                 if bomb.grid[y][i] == 0:
                     self.grid[y][i] = str(bomb.numbers(y, i))
+            try:
+                if self.grid[y][x - 2] == '*' and self.grid[y][x - 1] == ' ':
+                    self.free_space(y, x - 1)
+            except:
+                if self.grid[y][x - 1] == '*' and self.grid[y][x] == ' ':
+                    self.free_space(y, x - 1)
+            try:
+                if self.grid[y][x + 2] == '*' and self.grid[y][x + 1] == ' ':
+                    self.free_space(y, x + 1)
+            except:
+                if self.grid[y][x + 1] == '*' and self.grid[y][x] == ' ':
+                    self.free_space(y, x + 1)
 
     def _check_col(self, y, x):
         n = 0
         if y == 0:
             if bomb.grid[y + 1][x] == 0:
                 self.grid[y + 1][x] = str(bomb.numbers(y + 1, x))
+                if self.grid[y + 2][x] == '*' and self.grid[y + 1][x] == ' ':
+                    self.free_space(y + 1, x)
         if y == LAST_INDEX:
             if bomb.grid[y - 1][x] == 0:
                 self.grid[y - 1][x] = str(bomb.numbers(y - 1, x))
+                if self.grid[y - 2][x] == '*' and self.grid[y - 1][x] == ' ':
+                    self.free_space(y - 1, x)
         if 1 <= y and y < LAST_INDEX:
             for i in range(y - 1, y + 2, 2):
                 if bomb.grid[i][x] == 0:
                     self.grid[i][x] = str(bomb.numbers(i, x))
-        return n
+            try:
+                if self.grid[y - 2][x] == '*' and self.grid[y - 1][x] ==' ':
+                    self.free_space(y - 1, x)
+            except:
+                if self.grid[y - 1][x] == '*' and self.grid[y][x] ==' ':
+                    self.free_space(y - 1, x)
+            try:
+                if self.grid[y + 2][x] == '*' and self.grid[y + 1][x] ==' ':
+                    self.free_space(y + 1, x)
+            except:
+                if self.grid[y + 1][x] == '*' and self.grid[y][x] ==' ':
+                    self.free_space(y + 1, x)
 
     def _check_slash(self, y, x):
         n = 0
@@ -83,7 +123,6 @@ class board:
         elif (x == LAST_INDEX and y != LAST_INDEX) or (y == 0 and x != 0):
             if bomb.grid[y + 1][x - 1] == 0:
                 self.grid[y + 1][x - 1] = str(bomb.numbers(y + 1, x - 1))
-        return n
 
     def _check_backslash(self, y, x):
         n = 0
@@ -98,9 +137,8 @@ class board:
             if bomb.grid[y + 1][x + 1] == 0:
                 self.grid[y + 1][x + 1] = str(bomb.numbers(y + 1, x + 1))
         elif (x == LAST_INDEX and y != 0) or (y == LAST_INDEX and x != 0):
-            if bomb.grid[y - 1][x - 1] == 1:
-                self.grid[y + 1][x - 1] = str(bomb.numbers(y + 1, x - 1))
-        return n
+            if bomb.grid[y - 1][x - 1] == 0:
+                self.grid[y - 1][x - 1] = str(bomb.numbers(y - 1, x - 1))
             
 class mines:
 
@@ -207,7 +245,10 @@ def play_minesweeper():
         os.system("clear")
         game.draw()
         bomb.draw() #temporary to see if reveal function works
-        end = game.reveal()
+        x = int(input("\ncolumn: "))
+        y = int(input("row: "))
+        flag = input('flag? (y/n)')
+        end = game.reveal(y, x, flag)
         if end:
             game.draw()
             print(" you lost")
