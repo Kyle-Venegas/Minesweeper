@@ -31,10 +31,7 @@ class board:
                 self.mines += 1
         else:
             if bomb.grid[y][x] == 0:
-                self.grid[y][x] = str(bomb.numbers(y, x))
-                # for free space
-                if bomb.numbers(y, x) == ' ':
-                    self.free_space(y, x)
+                self.free_space(y, x)
             if bomb.grid[y][x]:
                 for y in range(BOARD_SIZE):
                     for x in range(BOARD_SIZE):
@@ -42,103 +39,67 @@ class board:
                             self.grid[y][x] = 'X'
                 return True
 
+    def convert_zero(self, y, x):
+        if bomb.numbers(y, x) == 0:
+            self.grid[y][x] = ' '
+
     def free_space(self, y, x):
-        self._check_row(y, x)
-        self._check_col(y, x)
-        self._check_slash(y, x)
-        self._check_backslash(y, x)
 
-    def _check_row(self, y, x):
-        n = 0
+        if bomb.grid[y][x]:
+            return
+        if self.grid[y][x] != '*':
+            return
+
+        self.grid[y][x] = str(bomb.numbers(y, x))
+        self.convert_zero(y, x)
+
+        if bomb.numbers(y, x) > 0:
+            return
+
         if x == 0:
-            if bomb.grid[y][x + 1] == 0:
-                self.grid[y][x + 1] = str(bomb.numbers(y, x + 1))
-                # third if statements and try block checks adjacent squares for other free space
-                if self.grid[y][x + 2] == '*' and self.grid[y][x + 1] == ' ':
-                    self.free_space(y, x + 1)
-        if x == LAST_INDEX:
-            if bomb.grid[y][x - 1] == 0:
-                self.grid[y][x - 1] = str(bomb.numbers(y, x - 1))
-                if self.grid[y][x - 2] == '*' and self.grid[y][x - 1] == ' ':
-                    self.free_space(y, x - 1)
-        if 1 <= x and x < LAST_INDEX:
-            for i in range(x - 1, x + 2, 2):
-                if bomb.grid[y][i] == 0:
-                    self.grid[y][i] = str(bomb.numbers(y, i))
-            try:
-                if self.grid[y][x - 2] == '*' and self.grid[y][x - 1] == ' ':
-                    self.free_space(y, x - 1)
-            except:
-                if self.grid[y][x - 1] == '*' and self.grid[y][x] == ' ':
-                    self.free_space(y, x - 1)
-            try:
-                if self.grid[y][x + 2] == '*' and self.grid[y][x + 1] == ' ':
-                    self.free_space(y, x + 1)
-            except:
-                if self.grid[y][x + 1] == '*' and self.grid[y][x] == ' ':
-                    self.free_space(y, x + 1)
+            if y == 0:
+                for (j, i) in [(0, 1), (1, 0), (1, 1),]:
+                    self.free_space(y + j, x + i)
+            elif y == LAST_INDEX:
+                for (j, i) in [(0, 1), (-1, 0), (-1, 1)]:
+                    self.free_space(y + j, x + i)
+            else:
+                for (j, i) in [(0, 1), (1, 0), (-1, 0), (1, 1), (-1, 1)]:
+                    self.free_space(y + j, x + i)
+        elif x == LAST_INDEX:
+            if y == 0:
+                for (j, i) in [(0, -1), (1, 0), (1, -1),]:
+                    self.free_space(y + j, x + i)
+            elif y == LAST_INDEX:
+                for (j, i) in [(0, -1), (-1, 0), (-1, -1)]:
+                    self.free_space(y + j, x + i)
+            else:
+                for (j, i) in [(0, -1), (1, 0), (-1, 0), (1, -1), (-1, -1)]:
+                    self.free_space(y + j, x + i)
 
-    def _check_col(self, y, x):
-        n = 0
-        if y == 0:
-            if bomb.grid[y + 1][x] == 0:
-                self.grid[y + 1][x] = str(bomb.numbers(y + 1, x))
-                if self.grid[y + 2][x] == '*' and self.grid[y + 1][x] == ' ':
-                    self.free_space(y + 1, x)
-        if y == LAST_INDEX:
-            if bomb.grid[y - 1][x] == 0:
-                self.grid[y - 1][x] = str(bomb.numbers(y - 1, x))
-                if self.grid[y - 2][x] == '*' and self.grid[y - 1][x] == ' ':
-                    self.free_space(y - 1, x)
-        if 1 <= y and y < LAST_INDEX:
-            for i in range(y - 1, y + 2, 2):
-                if bomb.grid[i][x] == 0:
-                    self.grid[i][x] = str(bomb.numbers(i, x))
-            try:
-                if self.grid[y - 2][x] == '*' and self.grid[y - 1][x] ==' ':
-                    self.free_space(y - 1, x)
-            except:
-                if self.grid[y - 1][x] == '*' and self.grid[y][x] ==' ':
-                    self.free_space(y - 1, x)
-            try:
-                if self.grid[y + 2][x] == '*' and self.grid[y + 1][x] ==' ':
-                    self.free_space(y + 1, x)
-            except:
-                if self.grid[y + 1][x] == '*' and self.grid[y][x] ==' ':
-                    self.free_space(y + 1, x)
+        elif y == 0:
+            for (j, i) in [(0, 1), (0, -1), (1, 0), (1, -1), (1, 1)]:
+                self.free_space(y + j, x + i)
+        elif y == LAST_INDEX:
+            for (j, i) in [(0, 1), (0, -1), (-1, 0), (-1, -1), (-1, 1)]:
+                self.free_space(y + j, x + i)
 
-    def _check_slash(self, y, x):
-        n = 0
-        if 1 <= y and 1 <= x and y < LAST_INDEX and x < LAST_INDEX:
-            y += 1
-            for i in range(x - 1, x + 2, 2):
-                if bomb.grid[y][i] == 0:
-                    self.grid[y][i] = str(bomb.numbers(y, i))
-                y -= 2
-        # boundary conditions
-        elif (x == 0 and y != 0) or (y == LAST_INDEX and x != LAST_INDEX):
-            if bomb.grid[y - 1][x + 1] == 0:
-                self.grid[y - 1][x + 1] = str(bomb.numbers(y - 1, x + 1))
-        elif (x == LAST_INDEX and y != LAST_INDEX) or (y == 0 and x != 0):
-            if bomb.grid[y + 1][x - 1] == 0:
-                self.grid[y + 1][x - 1] = str(bomb.numbers(y + 1, x - 1))
+        else:
+            for (j, i) in [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
+                self.free_space(y + j, x + i)
 
-    def _check_backslash(self, y, x):
+    def win(self):
         n = 0
-        if 1 <= y and 1 <= x and y < LAST_INDEX and x < LAST_INDEX:
-            y -= 1
-            for i in range(x - 1, x + 2, 2):
-                if bomb.grid[y][i] == 0:
-                    self.grid[y][i] = str(bomb.numbers(y, i))
-                y += 2
-        # boundary conditions
-        elif (x == 0 and y != LAST_INDEX) or (y == 0 and x != LAST_INDEX):
-            if bomb.grid[y + 1][x + 1] == 0:
-                self.grid[y + 1][x + 1] = str(bomb.numbers(y + 1, x + 1))
-        elif (x == LAST_INDEX and y != 0) or (y == LAST_INDEX and x != 0):
-            if bomb.grid[y - 1][x - 1] == 0:
-                self.grid[y - 1][x - 1] = str(bomb.numbers(y - 1, x - 1))
-            
+        for y in range(BOARD_SIZE):
+            for x in range(BOARD_SIZE):
+                if self.grid[y][x] == '*':
+                    break
+                if self.grid[y][x] == 'f' and bomb.grid[y][x]:
+                    n += 1
+                    if n == MINES:
+                        return True
+        return False
+
 class mines:
 
     def __init__(self):
@@ -164,75 +125,47 @@ class mines:
             y += 1
 
     def numbers(self, y, x):
-        if self.grid[y][x] == 0:
-            n = self._check_row(y, x)
-            n += self._check_col(y, x)
-            n += self._check_slash(y, x)
-            n += self._check_backslash(y, x)
-        if n == 0:
-            return ' '
-        return n
-
-    def _check_row(self, y, x):
         n = 0
         if x == 0:
-            if self.grid[y][x + 1] == 1:
-                n += 1
-        if x == LAST_INDEX:
-            if self.grid[y][x - 1] == 1:
-                n += 1
-        if 1 <= x and x < LAST_INDEX:
-            for i in range(x - 1, x + 2, 2):
-                if self.grid[y][i] == 1:
-                    n += 1
-        return n
+            if y == 0:
+                for (j, i) in [(0, 1), (1, 0), (1, 1),]:
+                    if self.grid[y + j][x + i]:
+                        n += 1
+            elif y == LAST_INDEX:
+                for (j, i) in [(0, 1), (-1, 0), (-1, 1)]:
+                    if self.grid[y + j][x + i]:
+                        n += 1
+            else:
+                for (j, i) in [(0, 1), (1, 0), (-1, 0), (1, 1), (-1, 1)]:
+                    if self.grid[y + j][x + i]:
+                        n += 1
+        elif x == LAST_INDEX:
+            if y == 0:
+                for (j, i) in [(0, -1), (1, 0), (1, -1),]:
+                    if self.grid[y + j][x + i]:
+                        n += 1
+            elif y == LAST_INDEX:
+                for (j, i) in [(0, -1), (-1, 0), (-1, -1)]:
+                    if self.grid[y + j][x + i]:
+                        n += 1
+            else:
+                for (j, i) in [(0, -1), (1, 0), (-1, 0), (1, -1), (-1, -1)]:
+                    if self.grid[y + j][x + i]:
+                        n += 1
 
-    def _check_col(self, y, x):
-        n = 0
-        if y == 0:
-            if self.grid[y + 1][x] == 1:
-                n += 1
-        if y == LAST_INDEX:
-            if self.grid[y - 1][x] == 1:
-                n += 1
-        if 1 <= y and y < LAST_INDEX:
-            for i in range(y - 1, y + 2, 2):
-                if self.grid[i][x] == 1:
+        elif y == 0:
+            for (j, i) in [(0, 1), (0, -1), (1, 0), (1, -1), (1, 1)]:
+                if self.grid[y + j][x + i]:
                     n += 1
-        return n
+        elif y == LAST_INDEX:
+            for (j, i) in [(0, 1), (0, -1), (-1, 0), (-1, -1), (-1, 1)]:
+                if self.grid[y + j][x + i]:
+                    n += 1
 
-    def _check_slash(self, y, x):
-        n = 0
-        if 1 <= y and 1 <= x and y < LAST_INDEX and x < LAST_INDEX:
-            y += 1
-            for i in range(x - 1, x + 2, 2):
-                if self.grid[y][i] == 1:
+        else:
+            for (j, i) in [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
+                if self.grid[y + j][x + i]:
                     n += 1
-                y -= 2
-        # boundary conditions
-        elif (x == 0 and y != 0) or (y == LAST_INDEX and x != LAST_INDEX):
-            if self.grid[y - 1][x + 1] == 1:
-                n += 1
-        elif (x == LAST_INDEX and y != LAST_INDEX) or (y == 0 and x != 0):
-            if self.grid[y + 1][x - 1] == 1:
-                n+= 1
-        return n
-
-    def _check_backslash(self, y, x):
-        n = 0
-        if 1 <= y and 1 <= x and y < LAST_INDEX and x < LAST_INDEX:
-            y -= 1
-            for i in range(x - 1, x + 2, 2):
-                if self.grid[y][i] == 1:
-                    n += 1
-                y += 2
-        # boundary conditions
-        elif (x == 0 and y != LAST_INDEX) or (y == 0 and x != LAST_INDEX):
-            if self.grid[y + 1][x + 1] == 1:
-                n += 1
-        elif (x == LAST_INDEX and y != 0) or (y == LAST_INDEX and x != 0):
-            if self.grid[y - 1][x - 1] == 1:
-                n+= 1
         return n
 
 game = board()
@@ -246,9 +179,12 @@ def play_minesweeper():
         bomb.draw() #temporary to see if reveal function works
         x = int(input("\ncolumn: "))
         y = int(input("row: "))
-        flag = input('flag? (y/n)')
+        flag = input('flag? (type "y" for yes, else enter): ')
         end = game.reveal(y, x, flag)
-        if end:
+        if end or game.win():
+            if game.win():
+                print(" you win")
+                break
             game.draw()
             print(" you lost")
             break
